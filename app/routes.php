@@ -13,6 +13,15 @@
 
 Route::get('/', function()
 {
-	return View::make('hello');
+	return View::make('index');
 });
+
+Route::get('/login','HomeController@login');
+Route::post('/login','HomeController@doLogin');
+Route::get('/logout',function() {
+    Auth::logout();
+    return Redirect::to('login');
+});
+
+Route::controller('dialer','DialerController');
 
