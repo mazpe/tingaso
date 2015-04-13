@@ -29,5 +29,6 @@ Route::get('/logout',function() {
     return Redirect::to('login');
 });
 
+Route::post('/dialer/session/create','DialerController@session_create');
 Route::controller('dialer','DialerController');
 
