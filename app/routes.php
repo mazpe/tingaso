@@ -16,6 +16,10 @@ Route::get('/', function()
 	return View::make('index');
 });
 
+Route::get('/home', 'HomeController@getHome');
+
+Route::get('/reports', 'ReportsController@getReport');
+
 Route::get('/register','UsersController@getRegister');
 Route::post('/register','UsersController@create');
 Route::get('/login','UsersController@getLogin');
