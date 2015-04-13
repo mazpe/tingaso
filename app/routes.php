@@ -16,8 +16,10 @@ Route::get('/', function()
 	return View::make('index');
 });
 
-Route::get('/login','HomeController@getLogin');
-Route::post('/login','HomeController@postLogin');
+Route::get('/register','UsersController@getRegister');
+Route::post('/register','UsersController@create');
+Route::get('/login','UsersController@getLogin');
+Route::post('/login','UsersController@postLogin');
 Route::get('/logout',function() {
     Auth::logout();
     return Redirect::to('login');
