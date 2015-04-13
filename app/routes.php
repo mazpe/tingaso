@@ -16,8 +16,8 @@ Route::get('/', function()
 	return View::make('index');
 });
 
-Route::get('/login','HomeController@login');
-Route::post('/login','HomeController@doLogin');
+Route::get('/login','HomeController@getLogin');
+Route::post('/login','HomeController@postLogin');
 Route::get('/logout',function() {
     Auth::logout();
     return Redirect::to('login');
