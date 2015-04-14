@@ -29,9 +29,9 @@
 
   <body>
 
-         @if (Auth::check())
-            @include('admin_nav')
-         @endif
+     @if (Auth::check())
+        @include('admin_nav')
+     @endif
 
     <div class="container">
       @if(Session::get('errors'))

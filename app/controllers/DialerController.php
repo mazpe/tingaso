@@ -52,6 +52,7 @@ class DialerController extends \BaseController {
                     'prefix'        => Input::get('prefix'),
                     'starting'      => $starting,
                     'ending'        => $ending,
+                    'status'        => 'Incomplete',
                     'created_by_id' => Auth::user()->id,
                     'updated_by_id' => Auth::user()->id
                 )
@@ -62,10 +63,13 @@ class DialerController extends \BaseController {
             $number = $starting;
             for ($i = $starting; $i <= $ending; $i++) {
 
+                $this->generate_call_files($area_code.$prefix.$number);
+
                 $phone_number = array(
                     'area_code'     => $area_code,
                     'prefix'        => $prefix,
                     'number'        => $number,
+                    'status'        => 'Not Called',
                     'session_id'    => $session_id
                 );
 
@@ -77,11 +81,9 @@ class DialerController extends \BaseController {
 
             DB::table('phone_numbers')->insert($phone_numbers);
 
-            // create call file per number
-
             // return to dialers page
             Session::flash('message', 'Dialing Session has started. Session ID: '. $session_id);
-            //return Redirect::to('/dialer');
+            return Redirect::to('/dialer');
 
         }
 
@@ -146,5 +148,26 @@ class DialerController extends \BaseController {
 		//
 	}
 
+   protected function generate_call_files($phone_number)
+    {
+        $file_path = "/tmp/".$phone_number.".call";
+        $handle = fopen($file_path,"w");
+
+        $contents = "Channel: SIP/" . $phone_number . "@vitel-outbound
+            Callerid: 7861234567
+            MaxRetries: 5
+            RetryTime: 600
+            WaitTime: 15
+            Application: hangup
+            Archive: yes
+            ";
+
+        fwrite($handle,$contents);
+
+        fclose($handle);
+
+        //echo $file_path."<br>";
+        //exec("mv $file_path /var/spool/asterisk/outgoing");
+    }
 
 }
