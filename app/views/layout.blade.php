@@ -12,7 +12,6 @@
     <style>
     body{
       background: url("img/stardust.png");
-        min-height: 2000px;
         padding-top: 70px;
     }
 

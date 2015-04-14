@@ -9,7 +9,7 @@ class DialerController extends \BaseController {
 	 */
 	public function getIndex()
 	{
-        $dialing_sessions = DB::table('dialing_sessions')->get();
+        $dialing_sessions = DB::table('dialing_sessions')->orderBy('id','desc')->get();
 
 		return View::make('dialer.index')
             ->with(['dialing_sessions' => $dialing_sessions]);

@@ -12,28 +12,30 @@
         {{ Form::open(array('url'=>'/dialer/session/create','class'=>'form-inline')) }}
 
         <div class="container-fluid">
-            <div class="col-xs-1 ">Range: </div>
-            <div class="col-xs-11">
-                <div class="form-group">
-                    <input type="text" name="area_code" class="form-control" id="area_code" placeholder="305">
+            <div class="row">
+                <div class="col-md-10 col-md-offset-1">
+                    <div class="form-group">
+                        <input type="text" name="area_code" class="form-control" id="area_code" placeholder="Area Code">
+                    </div>
+                    <div class="form-group">
+                        <input type="text" name="prefix" class="form-control" id="prefix" placeholder="Prefix">
+                    </div>
+                    <div class="form-group">
+                        <input type="text" name="starting" class="form-control" id="starting" placeholder="Starting">
+                    </div>
+                    <div class="form-group">
+                        <input type="text" name="ending" class="form-control" id="ending" placeholder="Ending">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <input type="text" name="prefix" class="form-control" id="prefix" placeholder="356">
-                </div>
-                Starting:
-                <div class="form-group">
-                    <input type="text" name="starting" class="form-control" id="starting" placeholder="1000">
-                </div>
-                Ending:
-                <div class="form-group">
-                    <input type="text" name="ending" class="form-control" id="ending" placeholder="1099">
+            </div>
+            <br />
+            <div class="row">
+                <div class="col-md-4 col-md-offset-4">
+                <button class="btn btn-lg btn-primary" type="submit">Create Dialing Session &raquo;</button>
                 </div>
             </div>
         </div>
-        <br />
-        <p>
-          <button class="btn btn-lg btn-primary" type="submit">Create Dialing Session &raquo;</button>
-        </p>
+
         <br />
         <h2><font color="#ff4500">Active Sessions</font></h2>
           <table class="table table-condensed table-striped table-bordered table-hover">
@@ -74,7 +76,7 @@
             </tbody>
           </table>
 
-      </div>
+
 
 
 @stop
