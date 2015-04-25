@@ -27,7 +27,8 @@ $controller = $controller[0];
               <ul class="dropdown-menu" role="menu">
                 <li><a href="#">Users</a></li>
                 <li class="divider"></li>
-                <li><a href="#">Dialers</a></li>
+                <li><a href="/settings/dialer">Dialers</a></li>
+                <li><a href="/settings/system">System</a></li>
               </ul>
             </li>
             <li><a href="/logout">{{ Auth::user()->first_name }} {{ Auth::user()->last_name }}<span class="sr-only"></span></a></li>

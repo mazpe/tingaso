@@ -6,11 +6,25 @@
       <div class="jumbotron">
         <h1>Dialer</h1>
 
-        <h2><font color="#ff4500"> Create a Dialing Sessions</font></h2>
+        <h2>Create a Dialing Sessions</h2>
         <p>Enter the area code, prefix, starting and ending range to create a dialing session</p>
 
         {{ Form::open(array('url'=>'/dialer/session/create','class'=>'form-inline')) }}
 
+        <h3>Enter Caller ID:</h3>
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <input type="text" name="caller_id" class="form-control" id="caller_id" placeholder="Caller ID">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+<p></p>
+
+        <h3>Enter Calling Range:</h3>
         <div class="container-fluid">
             <div class="row">
                 <div class="col-md-10 col-md-offset-1">
@@ -42,6 +56,7 @@
             <thead>
               <tr >
                 <th>ID</th>
+                <th>Caller ID</th>
                 <th>Area/Prefix</th>
                 <th>Starting</th>
                 <th>Ending</th>
@@ -57,7 +72,8 @@
             <tbody>
 @foreach ($dialing_sessions as $c)
               <tr>
-                <td>{{ $c->id }}</td>
+                <td><a href="/dialer/session/{{ $c->id }}">{{ $c->id }}</a></td>
+                <td>{{ $c->caller_id }}</td>
                 <td>{{ $c->area_code }}-{{ $c->prefix }}</td>
                 <td>{{ $c->starting }}</td>
                 <td>{{ $c->ending }}</td>
@@ -75,7 +91,7 @@
 @endforeach
             </tbody>
           </table>
-
+{{ $dialing_sessions->links() }}
 
 
 

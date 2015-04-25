@@ -1,6 +1,6 @@
 <?php
 
-class DialerController extends \BaseController {
+class SettingsController extends \BaseController {
 
 	/**
 	 * Display a listing of the resource.
@@ -9,11 +9,28 @@ class DialerController extends \BaseController {
 	 */
 	public function getIndex()
 	{
-        $dialing_sessions = DB::table('dialing_sessions')->orderBy('id','desc')->paginate(15);
+        $dialing_sessions = DB::table('dialing_sessions')->orderBy('id','desc')->get();
 
 		return View::make('dialer.index')
             ->with(['dialing_sessions' => $dialing_sessions]);
 	}
+
+    public function getSystem()
+    {
+        $settings = DB::table('settings')->orderBy('id','desc')->get();
+
+        return View::make('settings.system')
+            ->with(['settings' => $settings]);
+    }
+
+    public function settings_system_edit($id)
+    {
+        $setting = DB::table('settings')->find($id);
+
+        return View::make('settings.system_edit')
+            ->with(['setting' => $setting]);
+    }
+
 
 
 	/**
