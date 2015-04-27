@@ -28,7 +28,7 @@ $controller = $controller[0];
                 <li><a href="#">Users</a></li>
                 <li class="divider"></li>
                 <li><a href="/settings/dialer">Dialers</a></li>
-                <li><a href="/settings/system">System</a></li>
+                <li><a href="/settings/asterisk">Asterisk Settings</a></li>
                 <li><a href="/settings/caller_id">Caller IDs</a></li>
               </ul>
             </li>
