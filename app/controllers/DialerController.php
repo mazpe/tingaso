@@ -11,8 +11,14 @@ class DialerController extends \BaseController {
 	{
         $dialing_sessions = DB::table('dialing_sessions')->orderBy('id','desc')->paginate(15);
 
+        $caller_ids = array('' => 'Select a Caller ID') +
+            DB::table('caller_ids')->lists('full_number', 'id');
+
 		return View::make('dialer.index')
-            ->with(['dialing_sessions' => $dialing_sessions]);
+            ->with([
+                'dialing_sessions' => $dialing_sessions,
+                'caller_ids'        => $caller_ids,
+            ]);
 	}
 
 
@@ -25,7 +31,7 @@ class DialerController extends \BaseController {
 	{
         // validate the info, create rules for the inputs
         $rules = array(
-            'caller_id' => 'required|numeric|min:3',
+            'caller_id_id' => 'required|numeric',
             'area_code' => 'required|numeric|min:3',
             'prefix'    => 'required|numeric|min:3',
             'starting'  => 'required|numeric|min:4',
@@ -42,17 +48,17 @@ class DialerController extends \BaseController {
         } else {
 
             // create session in database
-            $caller_id  = Input::get('caller_id');
-            $area_code  = Input::get('area_code');
-            $prefix     = Input::get('prefix');
-            $starting   = Input::get('starting');
-            $ending     = Input::get('ending');
+            $caller_id_id   = Input::get('caller_id_id');
+            $area_code      = Input::get('area_code');
+            $prefix         = Input::get('prefix');
+            $starting       = Input::get('starting');
+            $ending         = Input::get('ending');
 
             $session_id = DB::table('dialing_sessions')->insertGetId(
                 array(
-                    'caller_id'     => Input::get('caller_id'),
-                    'area_code'     => Input::get('area_code'),
-                    'prefix'        => Input::get('prefix'),
+                    'caller_id_id'  => $caller_id_id,
+                    'area_code'     => $area_code,
+                    'prefix'        => $prefix,
                     'starting'      => $starting,
                     'ending'        => $ending,
                     'status'        => 'Incomplete',
@@ -89,10 +95,13 @@ class DialerController extends \BaseController {
                 ->where('status','Not Called')
                 ->count();
 
+            $caller_id = DB::table('caller_ids')
+                ->where('id',$caller_id_id)
+                ->first();
 
             while ($not_called_count != 0 ) {
 
-                echo $not_called_count."<br><br>";
+                //echo $not_called_count."<br><br>";
 
                 $phone_number = DB::table('phone_numbers')
                     ->where('session_id',$session_id)
@@ -101,11 +110,11 @@ class DialerController extends \BaseController {
                     //->take(1)
                     ->first();
                 ;
-                echo $phone_number->number ."<br>"; 
+                //echo $phone_number->number ."<br>";
 
                 $call_number = $phone_number->area_code.$phone_number->prefix.$phone_number->number;
 
-                $this->generate_call_files($call_number);
+                $this->generate_call_files($call_number,$caller_id->full_number);
 
                 DB::table('phone_numbers')
                     ->where('id',$phone_number->id)
@@ -122,7 +131,7 @@ class DialerController extends \BaseController {
 
             // return to dialers page
             Session::flash('message', 'Dialing Session has started. Session ID: '. $session_id);
-            //return Redirect::to('/dialer');
+            return Redirect::to('/dialer');
 
         }
 
@@ -203,19 +212,25 @@ class DialerController extends \BaseController {
 		//
 	}
 
-   protected function generate_call_files($phone_number)
+   protected function generate_call_files($phone_number,$caller_id)
     {
+        $asterisk = DB::table('asterisk')->where('name','MaxRetries')->first();
+        $max_retries = $asterisk->value;
+        $asterisk = DB::table('asterisk')->where('name','RetryTime')->first();
+        $retry_time = $asterisk->value;
+        $asterisk = DB::table('asterisk')->where('name','WaitTime')->first();
+        $wait_time = $asterisk->value;
+
         $file_path = "/tmp/".$phone_number.".call";
         $handle = fopen($file_path,"w");
 
-        $contents = "Channel: SIP/" . $phone_number . "@vitel-outbound 
-            Callerid: 7861234567 
-            MaxRetries: 5 
-            RetryTime: 600 
-            WaitTime: 15 
-            Application: hangup 
-            Archive: yes
-            ";
+        $contents = "Channel: SIP/" . $phone_number . "@AlcazarNetDialer\n".
+            "Callerid: ".$caller_id."\n".
+            "MaxRetries: $max_retries\n".
+            "RetryTime: $retry_time\n".
+            "WaitTime: $wait_time\n".
+            "Application: hangup\n".
+            "Archive: Yes\n";
 
         fwrite($handle,$contents);
 

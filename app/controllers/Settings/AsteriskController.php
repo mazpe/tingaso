@@ -1,52 +1,47 @@
 <?php
 
-class CallerIDController extends BaseController {
+class AsteriskController extends BaseController {
 
-	public function getIndex()
+	public function index()
 	{
-        $caller_ids = DB::table('caller_ids')->orderBy('id','desc')->get();
+        $asterisk = DB::table('asterisk')->orderBy('id','desc')->get();
 
-        return View::make('settings.caller_id')
-            ->with(['caller_ids' => $caller_ids]);
+        return View::make('settings.asterisk')
+            ->with(['asterisk' => $asterisk]);
 	}
 
-    public function postCreate()
+    public function create()
     {
         // validate the info, create rules for the inputs
         $rules = array(
-            'area_code' => 'required|numeric|min:3',
-            'prefix'    => 'required|numeric|min:3',
-            'number'    => 'required|numeric|min:4',
+            'name'      => 'required',
+            'value'     => 'required',
         );
 
         // run the validation rules on the inputs from the form
         $validator = Validator::make(Input::all(), $rules);
         // if the validator fails, redirect back to the form
         if ($validator->fails()) {
-            return Redirect::to('/system/caller_id')
+            return Redirect::to('/system/asterisk')
                 ->withErrors($validator)
                 ->withInput(Input::except('password'));
         } else {
 
             // create session in database
-            $area_code = Input::get('area_code');
-            $prefix = Input::get('prefix');
-            $number = Input::get('number');
+            $name   = Input::get('name');
+            $value  = Input::get('value');
 
-            $caller_id = DB::table('caller_ids')->insertGetId(
+            $asterisk = DB::table('asterisk')->insertGetId(
                 array(
-                    'area_code' => $area_code,
-                    'prefix' => $prefix,
-                    'number' => $number,
-                    'full_number' => $area_code.$prefix.$number,
-                    'status' => 'Not Used',
+                    'name'  => $name,
+                    'value' => $value,
                     'created_by_id' => Auth::user()->id
                 )
             );
         }
 
-        Session::flash('message', 'Caller ID was added.');
-        return Redirect::to('/settings/caller_id');
+        Session::flash('message', 'Asterisk setting was added.');
+        return Redirect::to('/settings/asterisk');
 
     }
 
@@ -101,11 +96,11 @@ class CallerIDController extends BaseController {
 
     public function delete($id)
     {
-        $caller_id = CallerID::find($id);
-        $caller_id->delete();
+        $asterisk = Asterisk::find($id);
+        $asterisk->delete();
 
-        Session::flash('message', 'Caller ID was deleted.');
-        return Redirect::to('/settings/caller_id');
+        Session::flash('message', 'Asterisk Setting was deleted.');
+        return Redirect::to('/settings/asterisk');
     }
 
 

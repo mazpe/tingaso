@@ -4,30 +4,27 @@
 
       <!-- Main component for a primary marketing message or call to action -->
       <div class="jumbotron">
-        <h1>Caller Id</h1>
+        <h1>Asterisk Settings</h1>
 
         <p>Enter numbers to be added as caller ids and manage them.</p>
 
-        {{ Form::open(array('url'=>'/settings/caller_id/create','class'=>'form-inline')) }}
-        <h3>Enter Caller ID:</h3>
+        {{ Form::open(array('url'=>'/settings/asterisk/create','class'=>'form-inline')) }}
+        <h3>Create Settings:</h3>
         <div class="container-fluid">
             <div class="row">
                 <div class="col-md-10 col-md-offset-1">
                     <div class="form-group">
-                        <input type="text" name="area_code" class="form-control" id="area_code" placeholder="Area Code">
+                        <input type="text" name="name" class="form-control" id="name" placeholder="Name">
                     </div>
                     <div class="form-group">
-                        <input type="text" name="prefix" class="form-control" id="prefix" placeholder="Prefix">
-                    </div>
-                    <div class="form-group">
-                        <input type="text" name="number" class="form-control" id="number" placeholder="Number">
+                        <input type="text" name="value" class="form-control" id="value" placeholder="Value">
                     </div>
                 </div>
             </div>
             <br />
             <div class="row">
                 <div class="col-md-4 col-md-offset-4">
-                <button class="btn btn-lg btn-primary" type="submit">Add Caller ID &raquo;</button>
+                <button class="btn btn-lg btn-primary" type="submit">Create Asterisk Setting &raquo;</button>
                 </div>
             </div>
         </div>
@@ -39,10 +36,8 @@
             <thead>
               <tr >
                 <th>ID</th>
-                <th>Area</th>
-                <th>Prefix</th>
-                <th>Number</th>
-                <th>Status</th>
+                <th>Name</th>
+                <th>Value</th>
                 <th>Created By</th>
                 <th>Updated By</th>
                 <th>Created At</th>
@@ -51,22 +46,20 @@
               </tr>
             </thead>
             <tbody>
-@foreach ($caller_ids as $c)
+@foreach ($asterisk as $c)
               <tr>
                 <td>{{ $c->id }}</td>
-                <td>{{ $c->area_code }}</td>
-                <td>{{ $c->prefix }}</td>
-                <td>{{ $c->number }}</td>
-                <td>{{ $c->status }}</td>
+                <td>{{ $c->name }}</td>
+                <td>{{ $c->value }}</td>
                 <td>{{ $c->created_by_id }}</td>
                 <td>{{ $c->updated_by_id }}</td>
                 <td>{{ $c->created_at }}</td>
                 <td>{{ $c->updated_at }}</td>
                 <td>
-                <a href="/settings/caller_id/{{ $c->id }}/edit">
+                <a href="/settings/asterisk/{{ $c->id }}/edit">
                     <span class="glyphicon glyphicon-pencil" style="padding-right: 10px" title="Edit"></span>
                 </a>
-                <a href="/settings/caller_id/{{ $c->id }}/delete">
+                <a href="/settings/asterisk/{{ $c->id }}/delete">
                     <span class="glyphicon glyphicon-trash" title="Remove"></span>
                 </a>
                 </td>

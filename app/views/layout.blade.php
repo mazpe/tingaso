@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/morris.js/0.5.1/morris.css">
     <style>
     body{
-      background: url("img/stardust.png");
+      background: url("/img/stardust.png");
         padding-top: 70px;
     }
 

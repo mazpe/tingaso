@@ -23,13 +23,26 @@ Route::group([ 'before' => 'auth' ], function() {
 	Route::post('/dialer/session/create','DialerController@session_create');
 	Route::controller('dialer','DialerController');
 
-    Route::group(['prefix' => 'settings','before'=>'auth'], function(){
-	    Route::get('caller_id', 'CallerIDController@getIndex');
-	    Route::get('/settings/system/{id}/edit', 'SettingsController@settings_system_edit');
-	    Route::controller('settings','SettingsController');
-    });
 
 });
+
+Route::group(['prefix' => 'settings','before'=>'auth'], function(){
+    Route::get('/caller_id', 'CallerIDController@getIndex');
+    Route::post('/caller_id/create', 'CallerIDController@postCreate');
+    Route::get('/caller_id/{id}/edit', 'CallerIDController@edit');
+    Route::put('/caller_id/{id}/update',
+        array('as' => 'caller_id.update',
+            'uses' => 'CallerIDController@update'));
+    Route::get('/caller_id/{id}/delete', 'CallerIDController@delete');
+
+    Route::get('/asterisk', 'AsteriskController@index');
+    Route::post('/asterisk/create', 'AsteriskController@create');
+    Route::get('/asterisk/{id}/delete', 'AsteriskController@delete');
+
+    Route::get('/settings/system/{id}/edit', 'SettingsController@settings_system_edit');
+    //Route::controller('settings','SettingsController');
+});
+
 
 Route::get('/register','UsersController@getRegister');
 Route::post('/register','UsersController@create');

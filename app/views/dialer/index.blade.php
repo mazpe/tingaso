@@ -16,7 +16,7 @@
             <div class="row">
                 <div class="col-md-12">
                     <div class="form-group">
-                        <input type="text" name="caller_id" class="form-control" id="caller_id" placeholder="Caller ID">
+                        {{ Form::select('caller_id_id', $caller_ids , Input::old('caller_id_id'), array('class' => 'form-control')) }}
                     </div>
                 </div>
             </div>
@@ -73,7 +73,7 @@
 @foreach ($dialing_sessions as $c)
               <tr>
                 <td><a href="/dialer/session/{{ $c->id }}">{{ $c->id }}</a></td>
-                <td>{{ $c->caller_id }}</td>
+                <td></td>
                 <td>{{ $c->area_code }}-{{ $c->prefix }}</td>
                 <td>{{ $c->starting }}</td>
                 <td>{{ $c->ending }}</td>
