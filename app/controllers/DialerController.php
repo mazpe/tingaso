@@ -47,7 +47,6 @@ class DialerController extends \BaseController {
                 ->withInput(Input::except('password'));
         } else {
 
-
             // create session in database
             $caller_id_id   = Input::get('caller_id_id');
             $area_code      = Input::get('area_code');
@@ -59,7 +58,6 @@ class DialerController extends \BaseController {
                 Session::flash('message', 'Starting number ('.$starting.') cannot be greater than Ending number ('.$ending .')');
                 return Redirect::to('/dialer');
             }
-
 
             $session_id = DB::table('dialing_sessions')->insertGetId(
                 array(

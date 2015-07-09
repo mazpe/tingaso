@@ -103,6 +103,4 @@
           </table>
 {{ $dialing_sessions->links() }}
 
-
-
 @stop
