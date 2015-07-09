@@ -8,9 +8,6 @@
 
         <h2><font color="#ff4500">Sessions ID: {{ $call_session->id }} </font></h2>
 
-
-
-        <br />
         <h2><font color="#ff4500">Phone Numbers</font></h2>
           <table class="table table-condensed table-striped table-bordered table-hover">
             <thead>

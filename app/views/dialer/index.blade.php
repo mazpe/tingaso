@@ -21,7 +21,6 @@
                 </div>
             </div>
         </div>
-
 <p></p>
 
         <h3>Enter Calling Range:</h3>
@@ -52,18 +51,26 @@
 
         <br />
         <h2><font color="#ff4500">Active Sessions</font></h2>
+            <div class="row">
+                <div class="col-md-4">
+                <a href="/dialer/update_status" class="btn btn-lg btn-primary" role="button">Update Status &raquo;</a>
+                </div>
+            </div>
           <table class="table table-condensed table-striped table-bordered table-hover">
             <thead>
               <tr >
                 <th>ID</th>
-                <th>Caller ID</th>
                 <th>Area/Prefix</th>
                 <th>Starting</th>
                 <th>Ending</th>
                 <th>Status</th>
                 <th>Total</th>
-                <th>Pending</th>
+                <th>Called</th>
                 <th>Completed</th>
+                <th>Queued</th>
+                <th>Calling</th>
+                <th>Expired</th>
+                <th>Failed</th>
                 <th>Created By</th>
                 <th>Created At</th>
                 <th>Action</th>
@@ -73,14 +80,17 @@
 @foreach ($dialing_sessions as $c)
               <tr>
                 <td><a href="/dialer/session/{{ $c->id }}">{{ $c->id }}</a></td>
-                <td></td>
                 <td>{{ $c->area_code }}-{{ $c->prefix }}</td>
                 <td>{{ $c->starting }}</td>
                 <td>{{ $c->ending }}</td>
                 <td>{{ $c->status }}</td>
-                <td>{{ $c->ending - $c->starting }}</td>
-                <td></td>
-                <td></td>
+                <td align="center">{{ $c->total }}</td>
+                <td align="center">{{ $c->completed + $c->expired + $c->failed }}</td>
+                <td align="center">{{ $c->completed }}</td>
+                <td align="center">{{ $c->queued }}</td>
+                <td align="center">{{ $c->calling }}</td>
+                <td align="center">{{ $c->expired }}</td>
+                <td align="center">{{ $c->failed }}</td>
                 <td>{{ $c->created_by_id }}</td>
                 <td>{{ $c->created_at }}</td>
                 <td>

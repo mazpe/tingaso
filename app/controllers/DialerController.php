@@ -9,7 +9,7 @@ class DialerController extends \BaseController {
 	 */
 	public function getIndex()
 	{
-        $dialing_sessions = DB::table('dialing_sessions')->orderBy('id','desc')->paginate(15);
+        $dialing_sessions = DB::table('dialing_sessions')->orderBy('id','desc')->paginate(50);
 
         $caller_ids = array('' => 'Select a Caller ID') +
             DB::table('caller_ids')->lists('full_number', 'id');
@@ -47,12 +47,19 @@ class DialerController extends \BaseController {
                 ->withInput(Input::except('password'));
         } else {
 
+
             // create session in database
             $caller_id_id   = Input::get('caller_id_id');
             $area_code      = Input::get('area_code');
             $prefix         = Input::get('prefix');
             $starting       = Input::get('starting');
             $ending         = Input::get('ending');
+
+            if ($starting > $ending) {
+                Session::flash('message', 'Starting number ('.$starting.') cannot be greater than Ending number ('.$ending .')');
+                return Redirect::to('/dialer');
+            }
+
 
             $session_id = DB::table('dialing_sessions')->insertGetId(
                 array(
@@ -70,6 +77,7 @@ class DialerController extends \BaseController {
             // insert each number in database
             $phone_numbers = [];
             $number = $starting;
+            $counter = 0;
             for ($i = $starting; $i <= $ending; $i++) {
 
 
@@ -77,7 +85,7 @@ class DialerController extends \BaseController {
                     'area_code'     => $area_code,
                     'prefix'        => $prefix,
                     'number'        => $number,
-                    'status'        => 'Not Called',
+                    'status'        => 'Queued',
                     'session_id'    => $session_id
                 );
 
@@ -85,49 +93,12 @@ class DialerController extends \BaseController {
 
                 //echo $number."<br>";
                 $number++;
+                $counter++;
             }
 
             DB::table('phone_numbers')->insert($phone_numbers);
 
-
-            $not_called_count = DB::table('phone_numbers')
-                ->where('session_id',$session_id)
-                ->where('status','Not Called')
-                ->count();
-
-            $caller_id = DB::table('caller_ids')
-                ->where('id',$caller_id_id)
-                ->first();
-
-            while ($not_called_count != 0 ) {
-
-                //echo $not_called_count."<br><br>";
-
-                $phone_number = DB::table('phone_numbers')
-                    ->where('session_id',$session_id)
-                    ->where('status','Not Called')
-                    ->orderBy(DB::raw('RAND()'))
-                    //->take(1)
-                    ->first();
-                ;
-                //echo $phone_number->number ."<br>";
-
-                $call_number = $phone_number->area_code.$phone_number->prefix.$phone_number->number;
-
-                $this->generate_call_files($call_number,$caller_id->full_number);
-
-                DB::table('phone_numbers')
-                    ->where('id',$phone_number->id)
-                    ->update(['Status' => 'Call File Created']);
-
-                $not_called_count = DB::table('phone_numbers')
-                    ->where('session_id',$session_id)
-                    ->where('status','Not Called')
-                    ->count()
-                ;
-
-            }
-
+            DB::table('dialing_sessions')->where('id',$session_id)->update(['total' => $counter]);
 
             // return to dialers page
             Session::flash('message', 'Dialing Session has started. Session ID: '. $session_id);
@@ -136,29 +107,6 @@ class DialerController extends \BaseController {
         }
 
     }
-
-
-	/**
-	 * Store a newly created resource in storage.
-	 *
-	 * @return Response
-	 */
-	public function store()
-	{
-		//
-	}
-
-
-	/**
-	 * Display the specified resource.
-	 *
-	 * @param  int  $id
-	 * @return Response
-	 */
-	public function show($id)
-	{
-		//
-	}
 
     public function getSession($id)
     {
@@ -172,47 +120,179 @@ class DialerController extends \BaseController {
                 'phone_numbers' => $phone_numbers,
             ]);
 
+    }
+
+    public function update_status()
+    {
+
+        $numbers = DB::table('phone_numbers')->where('status','!=','Completed')->get();
+
+        $path = "/var/spool/asterisk/outgoing_done/";
+        ////echo "path: $path<br>";
+
+        foreach( $numbers as $key => $value ) {
+
+            $phone_number = $value->area_code.$value->prefix.$value->number;
+            $file = $path.$phone_number."-SID".$value->session_id.".call";
+            ////echo "phone_number: $phone_number<br>";
+            ////echo "file: $file<br>";
+            
+            //check if exists in outgoing_done
+            if (file_exists($file)) {
+
+                //open file and search for status line
+                $lines = file($file);
+
+                foreach ($lines as $line_num => $line) {
+                    $file_lines = explode(": ", $line);
+
+                    if (count($file_lines) > 1) {
+
+                        if ($file_lines[0] == "Status") {
+                            $phone_number = DB::table('phone_numbers')
+                                ->where('id',$value->id)
+                                ->update(['status' => trim($file_lines[1])])
+                                ;
+
+                            $cmd = "sudo rm -Rf $file";
+                            //exec($cmd. " > /dev/null &");
+
+                        }
+
+                    } else {
+                        //echo " - not empty - ";
+                    }
+
+                }
+
+
+                //read actual status and save to database
+
+            } else {
+
+                //echo $file ."-  doesnt exists <br>";
+
+            }
+        }
+
+        // update sessions status count
+
+        $dialing_sessions = DB::table('dialing_sessions')
+            ->where('status','!=','Completed')
+            ->get()
+        ;
+
+        //echo "updating session status<br>";
+        foreach($dialing_sessions as $key => $value) {
+            $id = $value->id;
+            //echo "session id: $id<br>";
+
+            //echo "updating status count<br>";
+            $this->update_status_count($value->id,'Completed','completed');
+            $this->update_status_count($value->id,'Queued','queued');
+            $this->update_status_count($value->id,'Call File Generated','calling');
+            $this->update_status_count($value->id,'Expired','expired');
+            $this->update_status_count($value->id,'Failed','failed');
+
+            //check if all numbers in dial session are completed... then mark session completed.
+            $phone_numbers_count = DB::table('phone_numbers')
+                ->where('session_id',$value->id)
+                ->where(function ($query) {
+                    $query->where('status','=','Call File Created')
+                          ->orWhere('status','=','Queued');
+                })
+                ->count()
+            ;
+            //echo $phone_numbers_count ."<br>";
+
+            if ($phone_numbers_count == 0) {
+                DB::table('dialing_sessions')->where('id',$value->id)->update(['status' => 'Completed']);
+            } else {
+                //echo "not completed: ". $phone_numbers_count ."<br>";
+            }
+        }
+
+        return Redirect::to('dialer');
+
+    }
+
+    public function session_update_status1($id)
+    {
+        $numbers = DB::table('phone_numbers')->where('session_id',$id)->get(); 
+
+        $path = "/var/spool/asterisk/outgoing_done/";
+
+        //var_dump($numbers);
+
+        //loop through each number
+        foreach( $numbers as $key => $value ) {
+
+            $phone_number = $value->area_code.$value->prefix.$value->number;
+            $file = $path.$phone_number."-SID".$id.".call";
+
+            //check if exists in outgoing_done
+            if (file_exists($file)) {
+
+                //open file and search for status line
+                $lines = file($file);
+
+                foreach ($lines as $line_num => $line) {
+                    $file_lines = explode(": ", $line);
+
+                    if (count($file_lines) > 1) {
+
+                        if ($file_lines[0] == "Status") {
+                            $phone_number = DB::table('phone_numbers')
+                                ->where('id',$value->id)
+                                ->update(['status' => $file_lines[1]])
+                                ;
+
+                            $cmd = "sudo rm -Rf $file";
+                            exec($cmd. " > /dev/null &");
+
+                        }
+
+                    } else {
+                        //echo " - not empty - ";
+                    }
+
+                }
+
+
+                //read actual status and save to database
+
+            } else {
+
+                //echo $file ."-  doesnt exists <br>";
+
+            }
+        }
+
+        //check if all numbers in dial session are completed... then mark session completed.
+        $phone_numbers_count = DB::table('phone_numbers')
+            ->where('session_id',$id)
+            ->where('status','=','Call File Created')
+            ->count()
+        ;
+//echo $phone_numbers_count ."<br>";
+
+        if ($phone_numbers_count == 0) {
+            DB::table('dialing_sessions')->where('id',$id)->update(['status' => 'Completed']);
+        }
+
+        $call_session = DB::table('dialing_sessions')->find($id);
+        $phone_numbers = DB::table('phone_numbers')->where('session_id',$id)->get();
+
+        return View::make('dialer.session')
+            ->with([
+                'call_session' => $call_session,
+                'phone_numbers' => $phone_numbers,
+            ]);
 
     }
 
 
-
-	/**
-	 * Show the form for editing the specified resource.
-	 *
-	 * @param  int  $id
-	 * @return Response
-	 */
-	public function edit($id)
-	{
-		//
-	}
-
-
-	/**
-	 * Update the specified resource in storage.
-	 *
-	 * @param  int  $id
-	 * @return Response
-	 */
-	public function update($id)
-	{
-		//
-	}
-
-
-	/**
-	 * Remove the specified resource from storage.
-	 *
-	 * @param  int  $id
-	 * @return Response
-	 */
-	public function destroy($id)
-	{
-		//
-	}
-
-   protected function generate_call_files($phone_number,$caller_id)
+   protected function generate_call_files($session_id,$phone_number,$caller_id)
     {
         $asterisk = DB::table('asterisk')->where('name','MaxRetries')->first();
         $max_retries = $asterisk->value;
@@ -221,7 +301,7 @@ class DialerController extends \BaseController {
         $asterisk = DB::table('asterisk')->where('name','WaitTime')->first();
         $wait_time = $asterisk->value;
 
-        $file_path = "/tmp/".$phone_number.".call";
+        $file_path = "/tmp/".$phone_number."-SID".$session_id.".call";
         $handle = fopen($file_path,"w");
 
         $contents = "Channel: SIP/" . $phone_number . "@AlcazarNetDialer\n".
@@ -237,7 +317,35 @@ class DialerController extends \BaseController {
         fclose($handle);
 
         echo $file_path."<br>";
-        exec("mv $file_path /var/spool/asterisk/outgoing2");
+        exec("mv $file_path /var/spool/asterisk/outgoing");
+    }
+
+    protected function update_status_count($session_id,$phone_status,$session_status)
+    {
+
+        //echo "updating status count: $session_id - $phone_status<br>";
+        $calls = DB::table('phone_numbers')
+            ->select('session_id',DB::raw('COUNT(*) as count'))
+            ->where('session_id',$session_id)
+            ->where('status',$phone_status)
+            ->get()
+        ;
+
+        if ($calls) {
+            foreach ($calls as $key => $value) {
+                DB::table('dialing_sessions')->where('id',$session_id)->update(
+                    [$session_status => $value->count]
+                );
+            }
+        } else {
+
+            DB::table('dialing_sessions')->where('id',$session_id)->update(
+                [$session_status => 0]
+            );
+
+        }
+
+        return;
     }
 
 }

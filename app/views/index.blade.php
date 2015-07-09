@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>View Template that use Bootstrap</title>
+    <title>Tingaso</title>
 
     <!-- Bootstrap CSS served from a CDN -->
     <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css" rel="stylesheet">
@@ -32,7 +32,7 @@
 
     <div class="container">
       <div class="row">
-        <h2>This template is using Bootstrap from a CDN!</h2>
+        <h2>Tingaso</h2>
 
         <div class="row centered-form">
           <div class="col-xs-12 col-sm-8 col-md-4 col-sm-offset-2 col-md-offset-4">

@@ -12,14 +12,17 @@
 */
 
 Route::group([ 'before' => 'auth' ], function() { 
-	Route::get('/',function() {
-		return "Hello World";
-	});
+    //Route::get('/',function() {
+	//	return "Hello World";
+	//});
 
+	Route::get('/', 'HomeController@getHome');
 	Route::get('/home', 'HomeController@getHome');
 
 	Route::get('/reports', 'ReportsController@getReport');
 
+	Route::get('/dialer/update_status','DialerController@update_status');
+	Route::get('/dialer/session/{id}/update_status','DialerController@session_update_status');
 	Route::post('/dialer/session/create','DialerController@session_create');
 	Route::controller('dialer','DialerController');
 
@@ -37,6 +40,10 @@ Route::group(['prefix' => 'settings','before'=>'auth'], function(){
 
     Route::get('/asterisk', 'AsteriskController@index');
     Route::post('/asterisk/create', 'AsteriskController@create');
+    Route::get('/asterisk/{id}/edit', 'AsteriskController@edit');
+    Route::put('/asterisk/{id}/update',
+        array('as' => 'asterisk.update',
+            'uses' => 'AsteriskController@update'));
     Route::get('/asterisk/{id}/delete', 'AsteriskController@delete');
 
     Route::get('/settings/system/{id}/edit', 'SettingsController@settings_system_edit');
