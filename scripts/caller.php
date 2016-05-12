@@ -9,7 +9,7 @@
 
 $servername = "localhost";
 $username = "root";
-$password = "gbRND2008";
+$password = "password";
 $dbname = "ting";
 
 // Create connection
